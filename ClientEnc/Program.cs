@@ -1,3 +1,4 @@
+using ClientEnc.Algorithms;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,8 @@ namespace ClientEnc
             builder.RootComponents.Add<App>("#app");
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+
+            builder.Services.AddSingleton<ISymmetricEncryptor>(new Aes256Encryptor());
 
             await builder.Build().RunAsync();
         }

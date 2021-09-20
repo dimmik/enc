@@ -1,0 +1,41 @@
+﻿@page "/"
+@page "/{EncValue}"
+@using ClientEnc.Algorithms
+@inject ISymmetricEncryptor enc
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<table style="width: 100%" border="1">
+    <tr><td width="5%" valign="top">DEC</td><td colspan="2"><textarea style="width: 100%; min-height: 300px;" @bind="DecValue" /></td></tr>
+    <tr>
+        <td width="5%"><button @onclick='() => { try { EncValue = enc.Encrypt(Key, DecValue); } catch { EncValue = "ENC ERROR"; } }'>Encrypt</button></td>
+        <td>
+            Key: <input type="text" @bind-value="Key" />
+        </td>
+        <td width="5%"><button @onclick='() => { try { DecValue = enc.Decrypt(Key, EncValue); } catch { DecValue = "DEC ERROR"; } }'>Decrypt</button></td>
+    </tr>
+    <tr><td width="5%" valign="top">ENC</td><td colspan="2"><textarea style="width: 100%; min-height: 300px;" @bind="EncValue" /></td></tr>
+    <tr><td colspan="3"><a href="/@(EncValue)" target="_blank">Link to Encrypted value</a></td></tr>
+</table>
+
+@code 
+{
+    [Parameter]
+    public string EncValue { get; set; }
+    private string DecValue { get; set; }
+    private string Key { get; set; }
+
+    protected string MakeFlexible(string input)
+    {
+        var prepared = string.Join("<wbr/>", ChunksUpto((input ?? "").Replace("<", "&lt;"), 10));
+        return prepared;
+    }
+
+    static IEnumerable<string> ChunksUpto(string str, int maxChunkSize)
+    {
+        for (int i = 0; i < str.Length; i += maxChunkSize)
+            yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
+    }
+
+}

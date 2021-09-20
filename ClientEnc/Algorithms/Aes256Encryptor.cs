@@ -3,24 +3,20 @@ using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Paddings;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Security;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ClientEnc.Algorithms
 {
     public class Aes256Encryptor : ISymmetricEncryptor
     {
-        private static SecureRandom r = new SecureRandom();
+        private static Random r = new Random();
         public string Decrypt(string key, string encoded)
         {
             if (string.IsNullOrEmpty(key)) key = "";
             string[] parts = encoded.Split(":");
             if (parts.Length != 2) throw new Exception("Wrong encoded message format");
-            var (IV, encodedBytes) = (Convert.FromBase64String(parts[0]), Convert.FromBase64String(parts[1]));
+            var (IV, encodedBytes) = (parts[0].FromShortStringB58(), parts[1].FromShortStringB58());
 
             byte[] sha256key = Sha256Bytes(key);
 
@@ -63,9 +59,9 @@ namespace ClientEnc.Algorithms
             int length = cipher.ProcessBytes(inputBytes, outputBytes, 0);
             cipher.DoFinal(outputBytes, length); //Do the final block
 
-            string encryptedInput = Convert.ToBase64String(outputBytes);
+            string encryptedInput = outputBytes.ToShortStringB58();
 
-            return $"{Convert.ToBase64String(IV)}:{encryptedInput}";
+            return $"{IV.ToShortStringB58()}:{encryptedInput}";
         }
 
         private static byte[] Sha256Bytes(string key)
@@ -76,6 +72,20 @@ namespace ClientEnc.Algorithms
             byte[] sha256key = new byte[myHash.GetDigestSize()];
             myHash.DoFinal(sha256key, 0);
             return sha256key;
+        }
+    }
+    public static class BaseXXUtils
+    {
+        public static string ToShortStringB58(this byte[] input)
+        {
+            var base58Guid = SimpleBase.Base58.Bitcoin.Encode(input);
+            return base58Guid;
+        }
+
+        public static byte[] FromShortStringB58(this string str)
+        {
+            var byteArray = SimpleBase.Base58.Bitcoin.Decode(str).ToArray();
+            return byteArray;
         }
     }
 }

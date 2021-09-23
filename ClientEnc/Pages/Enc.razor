@@ -1,0 +1,42 @@
+﻿@page "/enc/{EncValue}"
+@using ClientEnc.Algorithms
+@inject ISymmetricEncryptor enc
+<h1>Siumple client-side enc/dec</h1>
+
+<table style="width: 100%" border="1">
+    <tr><td width="5%" valign="top">ENC</td><td colspan="2"  style="font-size: xx-small">@((MarkupString)MakeFlexible(EncValue))</td></tr>
+    <tr>
+        <td colspan="3">
+            Key: <input type="text" @bind-value="Key" />
+            <button @onclick='() => { try { DecValue = enc.Decrypt(Key, EncValue); } catch { DecValue = "DEC ERROR"; } }'>DEC</button>
+        </td>
+    </tr>
+    <tr><td width="5%" valign="top">DEC</td><td colspan="2" valign="top">@((MarkupString)MakeFlexible(DecValue))</td></tr>
+</table>
+
+@code 
+{
+    [Parameter]
+    public string EncValue { get; set; }
+    private string DecValue { get; set; } = "Here Dec goes";
+    private string Key { get; set; }
+
+    protected string MakeFlexible(string input)
+    {
+        var prepared = string
+            .Join("<wbr/>", ChunksUpto((input ?? "").Replace("<", "&lt;"), 10)
+            )
+            .Replace(" ", "&nbsp;")
+            .Replace("\r", "")
+            .Replace("\n", "<br/>")
+            ;
+        return prepared;
+    }
+
+    static IEnumerable<string> ChunksUpto(string str, int maxChunkSize)
+    {
+        for (int i = 0; i < str.Length; i += maxChunkSize)
+            yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
+    }
+
+}

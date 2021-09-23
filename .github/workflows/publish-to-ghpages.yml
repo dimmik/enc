@@ -20,8 +20,13 @@ jobs:
       with:
         dotnet-version: 5.0.*
 
-    - name: Dotnet Info
-      run: dotnet --info
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date -u -d '+3 hours' +'%Y-%m-%dT%H-%M-%SZ+03')"
+
+    - name: Find and Replace version
+      run: find . -name '*.razor' -exec sed -i ''s/##VER##/${{ steps.date.outputs.date }}/g'' {} \;
+
 
     # publishes Blazor project to the release-folder
     - name: Publish .NET Core Project
